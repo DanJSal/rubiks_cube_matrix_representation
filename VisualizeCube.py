@@ -86,6 +86,7 @@ def display_cube(cube, ax) -> None:
                 rect = Rectangle((x, y), 1, 1, edgecolor='black', facecolor='none', linewidth=1)
                 ax.add_patch(rect)
 
+    plt.tight_layout()
     plt.draw()
     plt.pause(0.01)  # Pause to allow the plot to update
 
