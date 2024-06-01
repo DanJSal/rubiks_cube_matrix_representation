@@ -62,7 +62,6 @@ class RubiksCube:
             np.random.seed(scramble_seed)
         self.scramble_count += 1
 
-        self.current_state = np.arange(6 * self.size ** 2)
         self.scramble_operations = []
         self.user_operations = []
         self.undone_operations = []
