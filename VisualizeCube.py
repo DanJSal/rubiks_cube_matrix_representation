@@ -8,11 +8,11 @@ Functions:
     display_cube(cube, ax) -> None:
         Displays the current state of the Rubik's Cube using matplotlib.
 
-    play(S: int, num_scrambles: int = 50) -> None:
+    play() -> None:
         Initiates the Rubik's Cube game, allowing the user to interact with the cube through terminal input.
 
     main() -> None:
-        The main function to start the game with a default cube size of 3x3x3 and no initial scrambles.
+        The main function to start the game by prompting the user for the cube size.
 """
 
 import numpy as np
@@ -43,7 +43,7 @@ def display_cube(cube, ax) -> None:
             for column in column_vecs:
                 initial_state += color * np.kron(face, np.kron(row, column))
 
-    cube_state = cube.current_state.toarray() @ initial_state
+    cube_state = initial_state[cube.current_state]
 
     # Define the colors for each face
     colors_list = [
@@ -107,42 +107,68 @@ def display_cube(cube, ax) -> None:
     plt.pause(0.01)  # Pause to allow the plot to update
 
 
-def play(S: int, num_scrambles: int = 50) -> None:
+def play() -> None:
     """
     Initiates the Rubik's Cube game, allowing the user to interact with the cube through terminal input.
-
-    Parameters:
-    S (int): The size of the cube (e.g., 3 for a standard 3x3x3 cube).
-    num_scrambles (int): Number of random rotations to scramble the cube initially. Defaults to 50.
     """
-    cube = rc(S, num_scrambles=num_scrambles)
+    while True:
+        try:
+            S = int(input("Enter the size of the Rubik's Cube (e.g., 3 for a 3x3x3 cube): "))
+            if S < 1:
+                raise ValueError("Cube size must be 1 or greater.")
+            break
+        except ValueError as e:
+            print(f"Invalid input: {e}. Please enter a valid integer size of 1 or greater.")
+
+    cube = rc(S, num_scrambles=0)
 
     plt.ion()  # Enable interactive mode
     fig, ax = plt.subplots(figsize=(8, 8))
+
+    print("Welcome to the Rubik's Cube simulator!")
+    print("Available commands:")
+    print(" - 'rotate axis plane direction': Rotate the cube. (axis: 0=x, 1=y, 2=z; direction: 0=counter-clockwise, 1=clockwise)")
+    print(" - 'scramble': Scramble the cube with random rotations.")
+    print(" - 'save': Save the current state of the cube.")
+    print(" - 'load': Load the previously saved state of the cube.")
+    print(" - 'reset': Reset the cube to the solved state.")
+    print(" - 'exit': Exit the simulator.")
+    print("Note: Use space to separate axis, plane, and direction for rotation command (e.g., 'rotate 0 2 1').")
 
     while True:
         display_cube(cube, ax)  # Display the cube's state after each move
 
         try:
-            user_input = input("Enter move: ")
-            if user_input.lower() == 'exit':
+            user_input = input("Enter command: ").strip().lower()
+            if user_input == 'exit':
                 break
-            elif user_input.lower() == 'check':
-                print(cube.check())
-            elif len(user_input.split()) != 3:
-                raise ValueError("Invalid input")
+            elif user_input == 'scramble':
+                num_scrambles = int(input("Enter number of scrambles: "))
+                cube.scramble(num_scrambles)
+            elif user_input == 'save':
+                cube.save_state()
+                print("Cube state saved.")
+            elif user_input == 'load':
+                try:
+                    cube.load_state()
+                    print("Cube state loaded.")
+                except ValueError:
+                    print("No saved state available.")
+            elif user_input == 'reset':
+                cube.reset()
+                print("Cube reset to solved state.")
             else:
-                axis, plane, direction = user_input.split()
-                axis = int(axis)
-                plane = int(plane)
-                direction = int(direction)
-
+                parts = user_input.split()
+                if len(parts) != 4 or parts[0] != 'rotate':
+                    raise ValueError("Invalid command")
+                axis = int(parts[1])
+                plane = int(parts[2])
+                direction = int(parts[3])
                 cube.rotate(axis, plane, direction)
                 display_cube(cube, ax)  # Update the display after the move
 
         except Exception as e:
-            print(e)
-            print(f"An error occurred. Please try again.")
+            print(f"An error occurred: {e}. Please try again.")
 
     plt.ioff()  # Disable interactive mode
     plt.show()  # Ensure the plot is shown when the game ends
@@ -150,10 +176,9 @@ def play(S: int, num_scrambles: int = 50) -> None:
 
 def main() -> None:
     """
-    The main function to start the game with a default cube size of 3x3x3 and no initial scrambles.
+    The main function to start the game by prompting the user for the cube size.
     """
-    S = 3
-    play(S, num_scrambles=0)
+    play()
 
 
 if __name__ == '__main__':
