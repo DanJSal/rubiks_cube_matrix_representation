@@ -22,7 +22,7 @@ from typing import List, Optional, Dict, Any, Tuple
 
 
 class RubiksCube:
-    def __init__(self, S: int, num_scrambles: int = 50, seed: Optional[int] = None):
+    def __init__(self, S: int, num_scrambles: int = 0, seed: Optional[int] = None):
         """
         Initializes the Rubik's Cube.
 

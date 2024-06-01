@@ -1,20 +1,3 @@
-"""
-Rubik's Cube Visualizer
-
-This module provides a visualization for a Rubik's Cube simulator using matplotlib. It allows for visual representation
-of the cube's state and interaction through terminal input.
-
-Functions:
-    display_cube(cube, ax) -> None:
-        Displays the current state of the Rubik's Cube using matplotlib.
-
-    play() -> None:
-        Initiates the Rubik's Cube game, allowing the user to interact with the cube through terminal input.
-
-    main() -> None:
-        The main function to start the game by prompting the user for the cube size.
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -132,6 +115,8 @@ def play() -> None:
     print(" - 'save': Save the current state of the cube.")
     print(" - 'load': Load the previously saved state of the cube.")
     print(" - 'reset': Reset the cube to the solved state.")
+    print(" - 'undo': Undo the specified number of moves.")
+    print(" - 'redo': Redo the specified number of moves.")
     print(" - 'exit': Exit the simulator.")
     print("Note: Use space to separate axis, plane, and direction for rotation command (e.g., 'rotate 0 2 1').")
 
@@ -145,6 +130,7 @@ def play() -> None:
             elif user_input == 'scramble':
                 num_scrambles = int(input("Enter number of scrambles: "))
                 cube.scramble(num_scrambles)
+                display_cube(cube, ax)  # Update the display after scramble
             elif user_input == 'save':
                 cube.save_state()
                 print("Cube state saved.")
@@ -152,11 +138,23 @@ def play() -> None:
                 try:
                     cube.load_state()
                     print("Cube state loaded.")
+                    display_cube(cube, ax)  # Update the display after load
                 except ValueError:
                     print("No saved state available.")
             elif user_input == 'reset':
                 cube.reset()
                 print("Cube reset to solved state.")
+                display_cube(cube, ax)  # Update the display after reset
+            elif user_input == 'undo':
+                num_moves = int(input("Enter number of moves to undo: "))
+                cube.undo(num_moves)
+                print(f"Undid {num_moves} moves.")
+                display_cube(cube, ax)  # Update the display after undo
+            elif user_input == 'redo':
+                num_moves = int(input("Enter number of moves to redo: "))
+                cube.redo(num_moves)
+                print(f"Redid {num_moves} moves.")
+                display_cube(cube, ax)  # Update the display after redo
             else:
                 parts = user_input.split()
                 if len(parts) != 4 or parts[0] != 'rotate':
