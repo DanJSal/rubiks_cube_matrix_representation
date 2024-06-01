@@ -10,7 +10,6 @@ This repository contains two modules:
 2. `VisualizeCube.py`:
     - A Rubik's Cube visualizer using matplotlib.
     - Provides a visual representation of the cube's state and interaction through terminal input.
-    - **Note:** This module is not optimized and is meant as a proof of concept.
 
 ## How to Use
 
@@ -42,6 +41,6 @@ To use the simulator and visualizer, follow these steps:
 ### `VisualizeCube.py`
 
 - **Functions**:
-    - `display_cube(cube: rc) -> None`: Displays the current state of the Rubik's Cube using matplotlib.
+    - `display_cube(cube, ax) -> None`: Displays the current state of the Rubik's Cube using matplotlib.
     - `play(S: int, num_scrambles: int = 50) -> None`: Initiates the Rubik's Cube game, allowing the user to interact with the cube through terminal input.
     - `main() -> None`: The main function to start the game with a default cube size of 3x3x3 and no initial scrambles.
