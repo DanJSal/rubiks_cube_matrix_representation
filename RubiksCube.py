@@ -18,7 +18,7 @@ Functions:
 
 import numpy as np
 from copy import deepcopy
-from typing import List, Optional, Dict, Any, Tuple
+from typing import Optional, List, Tuple, Dict
 
 
 class RubiksCube:
@@ -38,14 +38,13 @@ class RubiksCube:
         self.solved_permutations: np.ndarray = _create_win_permutations(self._rotation_operators)
 
         self.current_state: np.ndarray = np.arange(6 * self.size ** 2)
-        self.scramble_operations: List[List[int]] = []
-        self.user_operations: List[List[int]] = []
-        self.undone_operations: List[List[int]] = []
+        self.all_operations: List[Tuple[str, Tuple[int, int, int]]] = []
+        self.undone_operations: List[Tuple[str, Tuple[int, int, int]]] = []
         self.undo_count: int = 0
         self.check_count: int = 0
         self.scramble_count: int = 0
 
-        self.saved_state: Optional[Dict[str, Any]] = None
+        self.saved_state: Optional[Dict[str, np.ndarray, List[List[Tuple[str, Tuple[int, int, int]]]], int]] = None
 
         if num_scrambles > 0:
             self.scramble(num_scrambles)
@@ -62,17 +61,12 @@ class RubiksCube:
             np.random.seed(scramble_seed)
         self.scramble_count += 1
 
-        self.scramble_operations = []
-        self.user_operations = []
-        self.undone_operations = []
-        self.check_count = 0
-        self.undo_count = 0
         for _ in range(num_scrambles):
             axis = np.random.choice([0, 1, 2])
             plane = np.random.randint(0, self.size)
             direction = np.random.choice([0, 1])
             self._operate(axis, plane, direction)
-            self.scramble_operations.append([axis, plane, direction])
+            self.all_operations.append(('s', (axis, plane, direction)))
 
     def rotate(self, axis: int, plane: int, direction: int) -> None:
         """
@@ -95,7 +89,7 @@ class RubiksCube:
             raise ValueError(f"Invalid direction: {direction}. Options are 0, 1")
 
         self._operate(axis, plane, direction)
-        self.user_operations.append([axis, plane, direction])
+        self.all_operations.append(('r', (axis, plane, direction)))
         self.undone_operations.clear()
 
     def undo(self, num_moves: int = 1) -> None:
@@ -105,12 +99,12 @@ class RubiksCube:
         Parameters:
         num_moves (int): Number of moves to undo. Defaults to 1.
         """
-        if len(self.user_operations) == 0:
+        if len(self.all_operations) == 0:
             return
-        num_moves = min(num_moves, len(self.user_operations))
+        num_moves = min(num_moves, len(self.all_operations))
         for _ in range(num_moves):
-            last_move = self.user_operations.pop()
-            axis, plane, direction = last_move
+            last_move = self.all_operations.pop()
+            move_type, (axis, plane, direction) = last_move
             self._operate(axis, plane, 1 - direction)
             self.undone_operations.append(last_move)
             self.undo_count += 1
@@ -127,9 +121,9 @@ class RubiksCube:
         num_moves = min(num_moves, len(self.undone_operations))
         for _ in range(num_moves):
             last_undone_move = self.undone_operations.pop()
-            axis, plane, direction = last_undone_move
+            move_type, (axis, plane, direction) = last_undone_move
             self._operate(axis, plane, direction)
-            self.user_operations.append(last_undone_move)
+            self.all_operations.append(last_undone_move)
 
     def check(self) -> bool:
         """
@@ -146,7 +140,7 @@ class RubiksCube:
         Resets the cube to the solved state and clears all operation logs.
         """
         self.current_state = np.arange(6 * self.size ** 2)
-        self.user_operations = []
+        self.all_operations = []
         self.undone_operations = []
         self.check_count = 0
         self.undo_count = 0
@@ -157,8 +151,7 @@ class RubiksCube:
         """
         self.saved_state = {
             'current_state': deepcopy(self.current_state),
-            'scramble_operations': deepcopy(self.scramble_operations),
-            'user_operations': deepcopy(self.user_operations),
+            'all_operations': deepcopy(self.all_operations),
             'undone_operations': deepcopy(self.undone_operations),
             'undo_count': self.undo_count,
             'check_count': self.check_count,
@@ -176,8 +169,7 @@ class RubiksCube:
             raise ValueError("No saved state to load.")
 
         self.current_state = deepcopy(self.saved_state['current_state'])
-        self.scramble_operations = deepcopy(self.saved_state['scramble_operations'])
-        self.user_operations = deepcopy(self.saved_state['user_operations'])
+        self.all_operations = deepcopy(self.saved_state['all_operations'])
         self.undone_operations = deepcopy(self.saved_state['undone_operations'])
         self.undo_count = self.saved_state['undo_count']
         self.check_count = self.saved_state['check_count']
